@@ -1,16 +1,16 @@
 package com.hyq.hm.test.opencv;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.widget.ImageView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -18,8 +18,10 @@ import org.opencv.core.Mat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MultiplyActivity extends AppCompatActivity {
+public class MixActivity extends AppCompatActivity {
     static {
         System.loadLibrary("native-lib");
     }
@@ -27,29 +29,37 @@ public class MultiplyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Bitmap bitmap = decodeResource(getResources(),R.drawable.ic_pkq);
+        Bitmap pkqBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(pkqBitmap);
+        canvas.drawBitmap(bitmap,new Rect(0,0,bitmap.getWidth()/2,bitmap.getHeight()),
+                new Rect(0,0,bitmap.getWidth()/2,bitmap.getHeight()),null);
+        Paint paint = new Paint();
+        paint.setAlpha(180);
+        canvas.drawBitmap(bitmap,new Rect(bitmap.getWidth()/2,0,bitmap.getWidth(),bitmap.getHeight()),
+                new Rect(bitmap.getWidth()/2,0,bitmap.getWidth(),bitmap.getHeight()),paint);
 
         Bitmap catBitmap = decodeResource(getResources(),R.drawable.ic_car);
-        Bitmap pkqBitmap = Bitmap.createBitmap( catBitmap.getWidth(), catBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Bitmap bitmap = decodeResource(getResources(),R.drawable.ic_pkq);
-        Canvas canvas = new Canvas(pkqBitmap);
-        int left = 1100;
-        int top = 420;
-        canvas.drawARGB(255,255,255,255);
-        canvas.drawBitmap(bitmap,new Rect(0,0,bitmap.getWidth(),bitmap.getHeight()),new RectF(left,top,left+bitmap.getWidth(),top+bitmap.getHeight()),null);
+        catBitmap = Bitmap.createScaledBitmap(catBitmap,bitmap.getWidth(),bitmap.getHeight(),false);
 
         Mat catMat = new Mat();
         Mat pkqMat = new Mat();
         Utils.bitmapToMat(catBitmap, catMat);
         Utils.bitmapToMat(pkqBitmap, pkqMat);
-        Mat dst = CvImageCompute.cvMultiply(catMat,pkqMat);
-//        Mat dst = new Mat();
-//        Core.multiply(catMat,pkqMat,dst);
+
+        List<Mat> list = new ArrayList<>();
+        Core.split(pkqMat,list);
+        Mat dst = CvImageCompute.cvMix(catMat,pkqMat,list.get(3));
+
         Bitmap dstBitmap = Bitmap.createBitmap(catBitmap.getWidth(), catBitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(dst,dstBitmap);
 
+
         ImageView imageView = findViewById(R.id.image_view);
         imageView.setImageBitmap(dstBitmap);
+
     }
+
 
     private Bitmap decodeResource(Resources res, int id) {
         BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -79,5 +89,4 @@ public class MultiplyActivity extends AppCompatActivity {
         }
         return bm;
     }
-
 }
