@@ -30,7 +30,7 @@ public class CvImageCompute {
         int type = CvType.CV_64FC4;
         if(base.channels() == 1){
             type = CvType.CV_64FC1;
-        }else if(base.channels() == 1){
+        }else if(base.channels() == 3){
             type = CvType.CV_64FC3;
         }
         int baseType = base.type();
